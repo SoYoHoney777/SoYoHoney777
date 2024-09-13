@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chained Together Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        #gameCanvas {
+            display: block;
+            margin: auto;
+            border: 1px solid black;
+        }
+        #menu {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #menu button {
+            display: block;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <button onclick="startGame()">Start Game</button>
+        <button onclick="showSettings()">Settings</button>
+        <button onclick="showCredits()">Credits</button>
+    </div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
+const canvas = document.getElementById('gameCanvas');
+const context = canvas.getContext('2d');
+
+let character1 = { x: 100, y: 100, width: 50, height: 50, color: 'blue' };
+let character2 = { x: 200, y: 100, width: 50, height: 50, color: 'red' };
+let gameStarted = false;
+
+// Map shader effect
+function drawMapShader() {
+    const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, 'green');
+    gradient.addColorStop(1, 'blue');
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawCharacter(character) {
+    context.fillStyle = character.color;
+    context.fillRect(character.x, character.y, character.width, character.height);
+}
+
+function update() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    drawMapShader();
+    drawCharacter(character1);
+    drawCharacter(character2);
+}
+
+function moveCharacters(event) {
+    const speed = 10;
+    switch (event.key) {
+        case 'ArrowUp':
+            character1.y -= speed;
+            character2.y -= speed;
+            break;
+        case 'ArrowDown':
+            character1.y += speed;
+            character2.y += speed;
+            break;
+        case 'ArrowLeft':
+            character1.x -= speed;
+            character2.x -= speed;
+            break;
+        case 'ArrowRight':
+            character1.x += speed;
+            character2.x += speed;
+            break;
+    }
+    update();
+}
+
+document.addEventListener('keydown', (event) => {
+    if (gameStarted) {
+        moveCharacters(event);
+        socket.emit('move', { character1, character2 });
+    }
+});
+
+function startGame() {
+    gameStarted = true;
+    document.getElementById('menu').style.display = 'none';
+    update();
+}
+
+function showSettings() {
+    alert('Settings menu coming soon!');
+}
+
+function showCredits() {
+    alert('Game developed by [Your Name].');
+}
+
+// Multiplayer setup
+const socket = io('http://localhost:3000');
+
+socket.on('updatePositions', (data) => {
+    character1 = data.character1;
+    character2 = data.character2;
+    update();
+});
+const io = require('socket.io')(3000);
+
+let character1 = { x: 100, y: 100, width: 50, height: 50, color: 'blue' };
+let character2 = { x: 200, y: 100, width: 50, height: 50, color: 'red' };
+const io = require('socket.io')(3000);
+
+let character1 = { x: 100, y: 100, width: 50, height: 50, color: 'blue' };
+let character2 = { x: 200, y: 100, width: 50, height: 50, color: 'red' };
+
+io.on('connection', (socket) => {
+    socket.emit('updatePositions', { character1, character2 });
+
+    socket.on('move', (data) => {
+        character1 = data.character1;
+        character2 = data.character2;
+        io.emit('updatePositions', { character1, character2 });
+    });
+});
+
+io.on('connection', (socket) => {
+    socket.emit('updatePositions', { character1, character2 });
+
+    socket.on('move', (data) => {
+        character1 = data.character1;
+        character2 = data.character2;
+        io.emit('updatePositions', { character1, character2 });
+    });
+});
+const io = require('socket.io')(3000);
+
+let character1 = { x: 100, y: 100, width: 50, height: 50, color: 'blue' };
+let character2 = { x: 200, y: 100, width: 50, height: 50, color: 'red' };
+
+io.on('connection', (socket) => {
+    socket.emit('updatePositions', { character1, character2 });
+
+    socket.on('move', (data) => {
+        character1 = data.character1;
+        character2 = data.character2;
+        io.emit('updatePositions', { character1, character2 });
+    });
+});
